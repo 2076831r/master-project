@@ -86,6 +86,12 @@ function nql:__init(args)
     self.histSpacing    = args.histSpacing or 1
     self.nonTermProb    = args.nonTermProb or 1
     self.bufferSize     = args.bufferSize or 512
+    -- Added from icml
+    self.image_dims     = args.image_dims or {self.ncols, 32, 32}
+    self.bufferSize       = args.bufferSize or 512
+    self.smooth_target_q  = args.smooth_target_q or true
+    self.target_q_eps     = args.target_q_eps or 1e-3
+    self.clip_grad        = args.clip_grad or 20
 
     self.transition_params = args.transition_params or {}
 
@@ -250,7 +256,6 @@ function nql:getQUpdate(args, external_r)
     end
 
     -- Compute max_a Q(s_2, a).
-    -- print(s2:size(), subgoals2:size())
     q2_max = target_q_net:forward({s2, subgoals2:zero()}):float():max(2)
 
     -- Compute q2 = (1-terminal) * gamma * max_a Q(s2, a)
@@ -267,9 +272,9 @@ function nql:getQUpdate(args, external_r)
     delta = r:clone():float()
 
     -- TODO: removed scaling. check later
-    -- if self.rescale_r then
-    --     delta:div(self.r_max)
-    -- end
+    if self.rescale_r then
+        delta:div(self.r_max)
+    end
 
     delta:add(q2)
 
