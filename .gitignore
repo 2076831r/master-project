@@ -1,12 +1,2 @@
 # ignore everything
-/*
-
-# 
-!.gitignore
-!README.md
-
-!hierarchical-deep-RL-iclr16_basicsubgoal/
-hierarchical-deep-RL-iclr16_basicsubgoal/*
-!hierarchical-deep-RL-iclr16_basicsubgoal/dqn/
-hierarchical-deep-RL-iclr16_basicsubgoal/dqn/*
-!hierarchical-deep-RL-iclr16_basicsubgoal/dqn/grgr_additions/
+icml2016-minecraft/
