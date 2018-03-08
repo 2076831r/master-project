@@ -12,8 +12,8 @@ function g_create_network(args)
     args.name               = "dqn"
     args.n_actions          = args.n_actions or 6
     args.ncols              = args.ncols or 3
-    args.image_dims         = args.image_dims or {3, 32, 32}
-    args.input_dims         = args.input_dims or {args.hist_len * args.ncols, 32, 32}
+    args.image_dims         = args.image_dims or {3, 84, 84}
+    args.input_dims         = args.input_dims or {args.hist_len * args.ncols, 84, 84}
     args.n_units            = args.n_units or {32, 64}
     args.pad                = args.pad or {1, 1}
     args.n_hid_enc          = args.n_hid_enc or 256

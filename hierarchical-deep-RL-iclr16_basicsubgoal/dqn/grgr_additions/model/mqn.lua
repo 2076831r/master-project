@@ -2,6 +2,7 @@ require 'grgr_additions.model.net'
 
 local MQN, parent = torch.class('MQN', 'Net')
 function MQN:build_model(args)
+    -- CNN input
     local input = {}
     local init_states = {}
     local x = nn.Identity()()
@@ -11,9 +12,22 @@ function MQN:build_model(args)
         table.insert(input, state)
         table.insert(init_states, state)
     end
+
+    -- subgoal input
+    local subgoal_input = {}
+    local subgoal_init_states = {}
+    local subgoal_x = nn.Identity()()
+    table.insert(subgoal_input, subgoal_x)
+    for i=1, #self.subgoal_init_states do
+        local state = nn.Identity()()
+        table.insert(subgoal_input, state)
+        table.insert(subgoal_init_states, state)
+    end
+
     local T = args.hist_len
     local edim = args.n_hid_enc
     local cnn_features = self:build_cnn(args, x)
+    local subgoal = self:build_subgoal(args, subgoal_x)
     local history = nn.Narrow(2, 1, T-1)(cnn_features)
     local history_flat = nn.View(-1):setNumInputDims(1)(history)
     local key_blocks = nn.Linear(args.conv_dim, edim)(history_flat)
@@ -39,6 +53,13 @@ function MQN:build_model(args)
     local out = nn.View(-1):setNumInputDims(1)(hid_out)
     local q = nn.Linear(args.n_hid_enc, args.n_actions)(out)
     return nn.gModule(input, {q})
+end
+
+function MQN:build_subgoal(args, input)
+    local subgoal_linear1 = nn.Linear(args.subgoal_dims*9, args.subgoal_nhid)(input)
+    local subgoal_ReLu1 = nn.ReLU()(subgoal_linear1)
+    local subgoal_linear2 = nn.Linear(args.subgoal_dims*9, args.subgoal_nhid)(subgoal_ReLu1)
+    return nn.ReLU()(subgoal_linear2)
 end
 
 function MQN:build_retrieval(args, key_blocks, val_blocks, cnn_features, conv_dim, c0, h0)

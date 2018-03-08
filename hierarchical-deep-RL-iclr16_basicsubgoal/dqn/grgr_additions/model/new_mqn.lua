@@ -14,6 +14,10 @@ function MQN:build_model(args)
     local T = args.hist_len
     local edim = args.n_hid_enc
     local cnn_features = self:build_cnn(args, x)
+
+
+
+
 end
 
 function MQN:build_retrieval(args)
@@ -25,12 +29,10 @@ function MQN:build_context(args)
 end
 
 function MQN:build_subgoal(args, input)
-    subgoal_proc = nn.Sequential()
-        :add(nn.Linear(args.subgoal_dims*9, args.subgoal_nhid))
-        :add(nn.ReLU())
-        :add(nn.Linear(args.subgoal_nhid,args.subgoal_nhid))
-        :add(nn.ReLU())
-    return subgoal_proc(input)
+    local subgoal_linear1 = nn.Linear(args.subgoal_dims*9, args.subgoal_nhid)(input)
+    local subgoal_ReLu1 = nn.ReLU()(subgoal_linear1)
+    local subgoal_linear2 = nn.Linear(args.subgoal_dims*9, args.subgoal_nhid)(subgoal_ReLu1)
+    return nn.ReLU()(subgoal_linear2)
 end
 
 function MQN:build_cnn(args, input)
