@@ -27,15 +27,18 @@ function MQN:build_model(args)
     local T = args.hist_len
     local edim = args.n_hid_enc
     local cnn_features = self:build_cnn(args, x)
-    local subgoal = self:build_subgoal(args, subgoal_x)
+    local subgoal_features = self:build_subgoal(args, subgoal_x)
     local history = nn.Narrow(2, 1, T-1)(cnn_features)
     local history_flat = nn.View(-1):setNumInputDims(1)(history)
-    local key_blocks = nn.Linear(args.conv_dim, edim)(history_flat)
-    local val_blocks = nn.Linear(args.conv_dim, edim)(history_flat)
+    subgoal_features = nn.Replicate(11)(subgoal_features)
+    subgoal_features = nn.Reshape(352, 50)(subgoal_features)
+    history_flat = nn.JoinTable(2)({history_flat, subgoal_features})
+    local key_blocks = nn.Linear(args.hist_dim, edim)(history_flat)
+    local val_blocks = nn.Linear(args.hist_dim, edim)(history_flat)
     key_blocks = nn.View(-1, T-1, edim):setNumInputDims(2)(key_blocks)
     val_blocks = nn.View(-1, T-1, edim):setNumInputDims(2)(val_blocks)
     local hid, o = self:build_retrieval(args, key_blocks, val_blocks,
-                cnn_features, args.conv_dim, unpack(init_states))
+                cnn_features, args.hist_dim, unpack(init_states))
     local hid2dim = nn.View(-1):setNumInputDims(1)(hid)
     local C = args.Linear(edim, edim)(hid2dim)
     local D = nn.CAddTable()({C, o})
@@ -52,13 +55,13 @@ function MQN:build_model(args)
     end
     local out = nn.View(-1):setNumInputDims(1)(hid_out)
     local q = nn.Linear(args.n_hid_enc, args.n_actions)(out)
-    return nn.gModule(input, {q})
+    return nn.gModule({x, subgoal_x}, {q})
 end
 
 function MQN:build_subgoal(args, input)
     local subgoal_linear1 = nn.Linear(args.subgoal_dims*9, args.subgoal_nhid)(input)
     local subgoal_ReLu1 = nn.ReLU()(subgoal_linear1)
-    local subgoal_linear2 = nn.Linear(args.subgoal_dims*9, args.subgoal_nhid)(subgoal_ReLu1)
+    local subgoal_linear2 = nn.Linear(args.subgoal_nhid,args.subgoal_nhid)(subgoal_ReLu1)
     return nn.ReLU()(subgoal_linear2)
 end
 
@@ -104,7 +107,6 @@ function MQN:build_cnn(args, input)
         prev_dim = args.n_units[i]
         prev_input = conv_nl[i]
     end
-
     local conv_flat = nn.View(-1):setNumInputDims(3)(conv_nl[#args.n_units])
     return nn.View(-1, args.hist_len, args.conv_dim):setNumInputDims(2)(conv_flat)
 end

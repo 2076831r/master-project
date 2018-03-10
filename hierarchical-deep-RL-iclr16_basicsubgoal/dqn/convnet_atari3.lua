@@ -12,7 +12,7 @@ return function(args)
     args.filter_stride  = {4, 2, 1}
     args.n_hid          = {512}
     args.nl             = nn.Rectifier
-    args.name = "dqn"
+    args.name = "mqn"
 
     return g_create_network(args)
 end

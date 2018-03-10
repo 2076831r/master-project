@@ -8,11 +8,11 @@ require 'grgr_additions.model.rmqn'
 require 'grgr_additions.model.frmqn'
 
 function g_create_network(args)
+    args.name               = "mqn"
     args.hist_len           = args.hist_len or 10
-    args.name               = "dqn"
     args.n_actions          = args.n_actions or 6
-    args.ncols              = args.ncols or 3
-    args.image_dims         = args.image_dims or {3, 84, 84}
+    args.ncols              = args.ncols or 1
+    args.image_dims         = args.image_dims or {1, 84, 84}
     args.input_dims         = args.input_dims or {args.hist_len * args.ncols, 84, 84}
     args.n_units            = args.n_units or {32, 64}
     args.pad                = args.pad or {1, 1}
@@ -23,6 +23,7 @@ function g_create_network(args)
     args.lstm_dim           = args.edim or 256
     args.gpu                = args.gpu or -1
     args.conv_dim           = args.n_units[#args.n_units] * 8 * 8
+    args.hist_dim           = args.conv_dim + args.subgoal_nhid
     args.Linear             = nn.LinearNB
 
     if args.name == "dqn" then

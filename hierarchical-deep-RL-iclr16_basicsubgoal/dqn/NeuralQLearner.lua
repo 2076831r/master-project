@@ -87,7 +87,7 @@ function nql:__init(args)
     self.nonTermProb    = args.nonTermProb or 1
     self.bufferSize     = args.bufferSize or 512
     -- Added from icml
-    self.image_dims     = args.image_dims or {self.ncols, 32, 32}
+    self.image_dims     = args.image_dims or {self.ncols, 84, 84}
     self.bufferSize       = args.bufferSize or 512
     self.smooth_target_q  = args.smooth_target_q or true
     self.target_q_eps     = args.target_q_eps or 1e-3

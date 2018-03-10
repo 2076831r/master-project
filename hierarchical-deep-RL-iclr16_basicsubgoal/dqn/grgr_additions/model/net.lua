@@ -4,6 +4,7 @@ function Net:__init(args)
     self.args = args
     self.share_list = {}
     self.init_states = self:build_init_states(args)
+    self.subgoal_init_states = self:build_init_states(args)
     self:reset_init_states()
     self.recurrent = #self.init_states > 0
     self.net = self:build_model(args)
@@ -34,7 +35,7 @@ function Net:reset_init_states(batch_size)
     end
 end
 
-function Net:forward(x)
+function Net:forward(input)
     if self.recurrent then
         local input = {x}
         self:reset_init_states(x:size(1))
@@ -43,7 +44,9 @@ function Net:forward(x)
         end
         return self.net:forward(input)
     else
-        return self.net:forward(x)
+        local output1 = self.net:forward(input)
+        print(output1:size())
+        os.exit()
     end
 end
 
