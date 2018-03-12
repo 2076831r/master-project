@@ -1,0 +1,14 @@
+*.pdf
+*.h5
+gifs
+slurm_scripts
+*.t7
+structured_priority/dqn/logs
+dqn/logs
+slurm_logs
+dqn/*.png
+*~
+torch
+dqn/*.t7
+.DS_Store
+gifs
