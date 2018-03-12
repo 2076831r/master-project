@@ -9,3 +9,4 @@ torch
 dqn/*.t7
 .DS_Store
 gifs
+dqn/*.dot

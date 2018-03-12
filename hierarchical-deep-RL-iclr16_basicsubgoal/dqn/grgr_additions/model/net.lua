@@ -8,6 +8,7 @@ function Net:__init(args)
     self:reset_init_states()
     self.recurrent = #self.init_states > 0
     self.net = self:build_model(args)
+    self.net.name = args.name
 
     if args.gpu > 0 then
         self:cuda()
@@ -44,9 +45,14 @@ function Net:forward(input)
         end
         return self.net:forward(input)
     else
-        local output1 = self.net:forward(input)
-        print(output1:size())
-        os.exit()
+        local success, output = pcall(function() return self.net:forward(input) end)
+        if success then
+            return output
+        else
+            -- errored
+            print(output)
+            os.exit()
+        end
     end
 end
 

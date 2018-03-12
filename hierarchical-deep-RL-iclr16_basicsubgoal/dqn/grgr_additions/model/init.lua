@@ -6,6 +6,7 @@ require 'grgr_additions.model.drqn'
 require 'grgr_additions.model.mqn'
 require 'grgr_additions.model.rmqn'
 require 'grgr_additions.model.frmqn'
+nngraph.setDebug(true)
 
 function g_create_network(args)
     args.name               = "mqn"
