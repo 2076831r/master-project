@@ -28,14 +28,16 @@ function MQN:build_model(args)
     local edim = args.n_hid_enc
     local cnn_features = self:build_cnn(args, x)
     local subgoal_features = self:build_subgoal(args, subgoal_x)
+    subgoal_features = nn.View(-1, 1):setNumInputDims(2)(subgoal_features)
     local history = nn.Narrow(2, 1, T-1)(cnn_features)
     local history_flat = nn.View(-1):setNumInputDims(1)(history)
-    local key_blocks = nn.Linear(args.conv_dim, edim)(history_flat)
-    local val_blocks = nn.Linear(args.conv_dim, edim)(history_flat)
+    history_flat = nn.JoinTable(2)({history_flat, subgoal_features})
+    local key_blocks = nn.Linear(args.hist_dim, edim)(history_flat)
+    local val_blocks = nn.Linear(args.hist_dim, edim)(history_flat)
     key_blocks = nn.View(-1, T-1, edim):setNumInputDims(2)(key_blocks)
     val_blocks = nn.View(-1, T-1, edim):setNumInputDims(2)(val_blocks)
     local hid, o = self:build_retrieval(args, key_blocks, val_blocks,
-                cnn_features, args.conv_dim, unpack(init_states))
+                cnn_features, args.hist_dim, unpack(init_states))
     local hid2dim = nn.View(-1):setNumInputDims(1)(hid):annotate{name = 'hid2dim'}
     local C = args.Linear(edim, edim)(hid2dim)
     local D = nn.CAddTable()({C, o})
@@ -51,8 +53,7 @@ function MQN:build_model(args)
         hid_out = nn.JoinTable(2)({F,K})
     end
     local out = nn.View(-1):setNumInputDims(1)(hid_out)
-    out = nn.JoinTable(2)({out, subgoal_features})
-    local q = nn.Linear(args.n_hid_enc+50, args.n_actions)(out)
+    local q = nn.Linear(args.n_hid_enc, args.n_actions)(out)
     nngraph.annotateNodes()
     return nn.gModule({x, subgoal_x}, {q})
 end
@@ -60,7 +61,7 @@ end
 function MQN:build_subgoal(args, input)
     local subgoal_linear1 = nn.Linear(args.subgoal_dims*9, args.subgoal_nhid)(input)
     local subgoal_ReLu1 = nn.ReLU()(subgoal_linear1)
-    local subgoal_linear2 = nn.Linear(args.subgoal_nhid,args.subgoal_nhid)(subgoal_ReLu1)
+    local subgoal_linear2 = nn.Linear(args.subgoal_nhid, 11)(subgoal_ReLu1)
     return nn.ReLU()(subgoal_linear2)
 end
 
