@@ -49,10 +49,12 @@ function Net:forward(input)
         if success then
             return output
         else
-            -- errored
+            print("--------------------------------------------------------------------------------")
             print(output)
+            print("--------------------------------------------------------------------------------")
             os.exit()
         end
+
     end
 end
 
