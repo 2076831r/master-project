@@ -4,6 +4,7 @@ structured_priority/dqn/logs
 dqn/logs
 slurm_logs
 dqn/*.png
+dqn/*.svg
 *~
 torch
 dqn/*.t7
