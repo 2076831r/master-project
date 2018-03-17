@@ -60,7 +60,7 @@ function nql:__init(args)
     self.wc             = args.wc or 0  -- L2 weight cost.
     self.minibatch_size = args.minibatch_size or 1
     self.valid_size     = args.valid_size or 32
-    
+
 
     --- Q-learning parameters
     self.dynamic_discount = args.dynamic_discount
@@ -72,7 +72,7 @@ function nql:__init(args)
     -- Number of steps after which learning starts.
     self.learn_start    = args.learn_start or 0
     self.meta_learn_start    = args.meta_learn_start or 0
-    
+
      -- Size of the transition table.
     self.replay_memory  = args.replay_memory or 1000000
     self.hist_len       = args.hist_len or 1
@@ -109,7 +109,7 @@ function nql:__init(args)
         if not err_msg then
             error("Could not find network file ")
         end
-        if self.best and exp.best_model then --best_model_real and model_rel if testing on non-subgoal network  
+        if self.best and exp.best_model then --best_model_real and model_rel if testing on non-subgoal network
             self.network = exp.best_model
         else
             self.network = exp.model
@@ -121,7 +121,7 @@ function nql:__init(args)
     else
         print('Creating Agent Network from ' .. self.network)
         self.network = err
-        self.network = self:network()    
+        self.network = self:network()
     end
 
     if self.gpu and self.gpu >= 0 then
@@ -164,7 +164,7 @@ function nql:__init(args)
     local transition_args = {
         stateDim = self.state_dim, numActions = self.n_actions,
         histLen = self.hist_len, gpu = self.gpu,
-        maxSize = 200000, --self.replay_memory, 
+        maxSize = 200000, --self.replay_memory,
         histType = self.histType,
         histSpacing = self.histSpacing, nonTermProb = self.nonTermProb,
         bufferSize = self.bufferSize,
@@ -176,7 +176,7 @@ function nql:__init(args)
     local meta_transition_args = {
         stateDim = self.state_dim, numActions = args.max_objects,
         histLen = self.hist_len, gpu = self.gpu,
-        maxSize = 50000, --self.replay_memory, 
+        maxSize = 50000, --self.replay_memory,
         histType = self.histType,
         histSpacing = self.histSpacing, nonTermProb = self.nonTermProb,
         bufferSize = 512,
@@ -215,8 +215,8 @@ function nql:__init(args)
     if not self.network_meta then
         print("Creating new Meta Network.....")
         require 'convnet_atari3'
-       
-        self.network_meta = create_network(meta_args)
+
+        self.network_meta = g_create_network(meta_args)
     end
 
     -- copy the lower level weights from lower network
@@ -233,10 +233,10 @@ function nql:__init(args)
     --        end
     --        end
     --    end
-    --    if self.network.modules[i].bias then 
+    --    if self.network.modules[i].bias then
     --        self.network_meta.modules[i].bias = self.network.modules[i].bias:clone()
     --    end
-    --    if self.network.modules[i].weights then 
+    --    if self.network.modules[i].weights then
     --    self.network_meta.modules[i].weights = self.network.modules[i].weights:clone()
     --    end
     --end
@@ -272,16 +272,16 @@ function nql:reset(state)
     end
     self.best_network = state.best_network
     self.best_network_meta = state.best_network_meta
-    
+
     self.network = state.model
     self.network_meta = state.model_meta
-    
+
     self.w, self.dw = self.network:getParameters()
     self.dw:zero()
 
     self.w_meta, self.dw_meta = self.network_meta:getParameters()
     self.dw_meta:zero()
-    
+
     self.numSteps = 0
     print("RESET STATE SUCCESFULLY")
 end
@@ -385,8 +385,8 @@ function nql:qLearnMinibatch(network, target_network, tran_table, dw, w, g, g2, 
             -- TODO
         end
 
-    else    
-        r = r[{{},2}] --external + intrinsic reward 
+    else
+        r = r[{{},2}] --external + intrinsic reward
     end
 
     local targets, delta, q2_max = self:getQUpdate({s=s, a=a, r=r, s2=s2, n_actions = nactions,
@@ -493,22 +493,22 @@ function nql:get_objects(rawstate)
     end
     local object_list = process_pystr(msg)
     self.objects = object_list
-    return object_list --nn.SplitTable(1):forward(torch.rand(4, self.subgoal_dims))  
+    return object_list --nn.SplitTable(1):forward(torch.rand(4, self.subgoal_dims))
 end
 
 function nql:pick_subgoal(rawstate, metareward, terminal, testing, testing_ep)
     local objects = self:get_objects(rawstate)
 
-    local subg = objects[1] --does not matter 
+    local subg = objects[1] --does not matter
     subg = subg * 0
     local ftrvec = torch.zeros(#objects*self.subgoal_dims)
     ftrvec = torch.cat(subg, ftrvec)
 
 
-   
+
     local state = self:preprocess(rawstate):float()
 
-    self.meta_transitions:add_recent_state(state, terminal, ftrvec)  
+    self.meta_transitions:add_recent_state(state, terminal, ftrvec)
 
     --Store transition s, a, r, s'
 
@@ -536,7 +536,7 @@ function nql:pick_subgoal(rawstate, metareward, terminal, testing, testing_ep)
     -- print("Action chosen:", actionIndex)
     -- actionIndex = io.read("*number")
 
-    self.meta_transitions:add_recent_action(actionIndex) 
+    self.meta_transitions:add_recent_action(actionIndex)
 
     --Do some Q-learning updates
     if self.metanumSteps > self.meta_learn_start and not testing and
@@ -591,7 +591,7 @@ function nql:pick_subgoal(rawstate, metareward, terminal, testing, testing_ep)
         table.insert(self.subgoal_seq, indxs)
     end
 
-    -- Return subgoal    
+    -- Return subgoal
     return torch.cat(subg, ftrvec)
 end
 
@@ -635,7 +635,7 @@ function nql:intrinsic_reward(subgoal, objects)
         reward = 0
     end
 
-    
+
     if not self.use_distance then
         reward = 0 -- no intrinsic reward except for reaching the subgoal
     end
@@ -647,13 +647,13 @@ end
 
 function nql:perceive(subgoal, reward, rawstate, terminal, testing, testing_ep)
     -- Preprocess state (will be set to nil if terminal)
-    
+
     local state = self:preprocess(rawstate):float()
     local objects = self:get_objects(rawstate)
 
     if terminal then
         self.deathPosition = objects[1][{{1,2}}] --just store the x and y coords of the agent
-    end 
+    end
 
     local goal_reached = self:isGoalReached(subgoal, objects)
     local intrinsic_reward = self:intrinsic_reward(subgoal, objects)
@@ -683,7 +683,7 @@ function nql:perceive(subgoal, reward, rawstate, terminal, testing, testing_ep)
         self.r_max = math.max(self.r_max, reward)
     end
 
-    self.transitions:add_recent_state(state, terminal, subgoal)  
+    self.transitions:add_recent_state(state, terminal, subgoal)
 
     --Store transition s, a, r, s'
     if self.lastState and not testing and self.lastSubgoal then
@@ -718,7 +718,7 @@ function nql:perceive(subgoal, reward, rawstate, terminal, testing, testing_ep)
         --self:eGreedy(curState, testing_ep, subgoal)
     end
 
-    self.transitions:add_recent_action(actionIndex) 
+    self.transitions:add_recent_action(actionIndex)
 
     --Do some Q-learning updates
     if self.numSteps > self.learn_start and not testing and
@@ -728,7 +728,7 @@ function nql:perceive(subgoal, reward, rawstate, terminal, testing, testing_ep)
                 self.dw, self.w, self.g, self.g2, self.tmp, self.deltas, false, self.n_actions)
 
             -- TODO: learning for Real network
-            -- self:qLearnMinibatch(self.network_real,  self.target_network_real, self.dw_real, self.w_real, self.g_real, self.g2_real, self.tmp_real, self.deltas_real, true) 
+            -- self:qLearnMinibatch(self.network_real,  self.target_network_real, self.dw_real, self.w_real, self.g_real, self.g2_real, self.tmp_real, self.deltas_real, true)
         end
     end
 
@@ -771,7 +771,7 @@ function nql:perceive(subgoal, reward, rawstate, terminal, testing, testing_ep)
     if false then -- deprecated
         if self.target_q and self.numSteps % self.target_q == 1 then
             self.target_network = self.network:clone()
-            self.target_network_real = self.network_real:clone() 
+            self.target_network_real = self.network_real:clone()
         end
     else --smooth average
         local alpha = 0.999
@@ -797,7 +797,7 @@ function nql:eGreedy(mode, network, state, testing_ep, subgoal, lastsubgoal)
     self.ep = testing_ep or (self.ep_end +
                 math.max(0, (self.ep_start - self.ep_end) * (self.ep_endt -
                 math.max(0, self.numSteps - learn_start))/self.ep_endt))
-   
+
     local subgoal_id = subgoal[#subgoal]
     if mode ~= 'meta' and  subgoal_id ~= 6 and subgoal_id ~= 8 then -- TODO: properly update later using running hit rate
         self.ep = 0.1
@@ -886,11 +886,11 @@ function nql:report(filename)
     -- print(" Real Network\n---------------------")
     -- print(get_weight_norms(self.network_real))
     -- print(get_grad_norms(self.network_real))
-    
+
 
     -- print stats on subgoal success rates
     for subg, val in pairs(self.subgoal_total) do
-        if self.subgoal_success[subg] then 
+        if self.subgoal_success[subg] then
             print("Subgoal ID (8-key, 6/7-bottom ladders):" , subg , ' : ',  self.subgoal_success[subg]/val, self.subgoal_success[subg] .. '/' .. val)
         else
             print("Subgoal ID (8-key, 6/7-bottom ladders):" , subg ,  ' : ')

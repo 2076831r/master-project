@@ -281,6 +281,9 @@ while step < opt.steps do
             filename = filename .. "_" .. math.floor(step / opt.save_versions)
         end
         filename = filename
+        print()
+        print(filename)
+        print()
         torch.save(filename .. ".t7", {agent = agent,
                                 model = agent.network,
                                 best_model = agent.best_network,
