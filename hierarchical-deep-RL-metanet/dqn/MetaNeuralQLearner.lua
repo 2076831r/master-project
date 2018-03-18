@@ -1,5 +1,6 @@
 require 'image'
 require 'torch'
+require 'grgr_additions.model.init'
 if not dqn then
     require 'initenv'
 end
@@ -106,6 +107,7 @@ function nql:__init(args)
     if not msg then
         -- try to load saved agent
         local err_msg, exp = pcall(torch.load, self.network)
+
         if not err_msg then
             error("Could not find network file ")
         end
@@ -373,6 +375,8 @@ end
 function nql:qLearnMinibatch(network, target_network, tran_table, dw, w, g, g2, tmp, deltas, external_r, nactions, metaFlag)
     -- Perform a minibatch Q-learning update:
     -- w += alpha * (r + gamma max Q(s2,a2) - Q(s,a)) * dQ(s,a)/dw
+    print(tran_table:size())
+    print(self.minibatch_size)
     assert(tran_table:size() > self.minibatch_size)
 
     local s, a, r, s2, term, subgoals, subgoals2 = tran_table:sample(self.minibatch_size)
