@@ -13,31 +13,19 @@ function MQN:build_model(args)
         table.insert(init_states, state)
     end
 
-    -- subgoal input
-    local subgoal_input = {}
-    local subgoal_init_states = {}
     local subgoal_x = nn.Identity()()
-    table.insert(subgoal_input, subgoal_x)
-    for i=1, #self.subgoal_init_states do
-        local state = nn.Identity()()
-        table.insert(subgoal_input, state)
-        table.insert(subgoal_init_states, state)
-    end
 
     local T = args.hist_len
     local edim = args.n_hid_enc
     local cnn_features = self:build_cnn(args, x)
-    local subgoal_features = self:build_subgoal(args, subgoal_x)
-    subgoal_features = nn.View(-1, 1):setNumInputDims(2)(subgoal_features)
     local history = nn.Narrow(2, 1, T-1)(cnn_features)
     local history_flat = nn.View(-1):setNumInputDims(1)(history)
-    history_flat = nn.JoinTable(2)({history_flat, subgoal_features})
-    local key_blocks = nn.Linear(args.hist_dim, edim)(history_flat)
-    local val_blocks = nn.Linear(args.hist_dim, edim)(history_flat)
+    local key_blocks = nn.Linear(args.conv_dim, edim)(history_flat)
+    local val_blocks = nn.Linear(args.conv_dim, edim)(history_flat)
     key_blocks = nn.View(-1, T-1, edim):setNumInputDims(2)(key_blocks)
     val_blocks = nn.View(-1, T-1, edim):setNumInputDims(2)(val_blocks)
     local hid, o = self:build_retrieval(args, key_blocks, val_blocks,
-                cnn_features, args.hist_dim, unpack(init_states))
+                cnn_features, args.conv_dim, unpack(init_states))
     local hid2dim = nn.View(-1):setNumInputDims(1)(hid):annotate{name = 'hid2dim'}
     local C = args.Linear(edim, edim)(hid2dim)
     local D = nn.CAddTable()({C, o})
@@ -52,8 +40,10 @@ function MQN:build_model(args)
         local K = nn.ReLU()(G)
         hid_out = nn.JoinTable(2)({F,K})
     end
+    local subgoal_features = self:build_subgoal(args, subgoal_x)
     local out = nn.View(-1):setNumInputDims(1)(hid_out)
-    local q = nn.Linear(args.n_hid_enc, args.n_actions)(out)
+    out = nn.JoinTable(2)({out, subgoal_features})
+    local q = nn.Linear(args.n_hid_enc + 11, args.n_actions)(out)
     nngraph.annotateNodes()
     return nn.gModule({x, subgoal_x}, {q})
 end

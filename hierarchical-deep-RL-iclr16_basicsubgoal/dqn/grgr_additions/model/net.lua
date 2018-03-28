@@ -38,23 +38,22 @@ end
 
 function Net:forward(input)
     if self.recurrent then
-        local input = {x}
+        x, subgoal = input[1], input[2]
+        input = {x}
         self:reset_init_states(x:size(1))
         for i = 1, #self.init_states do
             table.insert(input, self.init_states[i])
         end
-        return self.net:forward(input)
+        table.insert(input, subgoal)
+    end
+    local success, output = pcall(function() return self.net:forward(input) end)
+    if success then
+        return output
     else
-        local success, output = pcall(function() return self.net:forward(input) end)
-        if success then
-            return output
-        else
-            print("--------------------------------------------------------------------------------")
-            print(output)
-            print("--------------------------------------------------------------------------------")
-            os.exit()
-        end
-
+        print("--------------------------------------------------------------------------------")
+        print(output)
+        print("--------------------------------------------------------------------------------")
+        os.exit()
     end
 end
 
