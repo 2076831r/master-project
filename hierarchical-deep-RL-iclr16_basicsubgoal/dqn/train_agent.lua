@@ -73,7 +73,6 @@ if not dqn then
     require "initenv"
 end
 
-
 print(opt.env_params)
 print(opt.seed)
 

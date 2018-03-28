@@ -103,6 +103,7 @@ function setup(_opt)
     _opt.pool_frms = str_to_table(_opt.pool_frms)
     _opt.env_params = str_to_table(_opt.env_params)
     _opt.agent_params = str_to_table(_opt.agent_params)
+
     if _opt.agent_params.transition_params then
         _opt.agent_params.transition_params =
             str_to_table(_opt.agent_params.transition_params)
