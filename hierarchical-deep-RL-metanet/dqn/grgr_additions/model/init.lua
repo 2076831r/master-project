@@ -9,7 +9,7 @@ require 'grgr_additions.model.frmqn'
 nngraph.setDebug(true)
 
 function g_create_network(args)
-    args.name               = "mqn"
+    args.name               = args.model_type
     args.hist_len           = args.hist_len or 10
     args.n_actions          = args.n_actions or 6
     args.ncols              = args.ncols or 1

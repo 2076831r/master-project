@@ -9,6 +9,7 @@ function Net:__init(args)
     self.recurrent = #self.init_states > 0
     self.net = self:build_model(args)
     self.net.name = args.name
+    self.gpu = args.gpu
 
     if args.gpu > 0 then
         self:cuda()
@@ -42,7 +43,11 @@ function Net:forward(input)
         input = {x}
         self:reset_init_states(x:size(1))
         for i = 1, #self.init_states do
-            table.insert(input, self.init_states[i])
+            if self.gpu and self.gpu >= 0 then
+                table.insert(input, torch.CudaTensor(self.init_states[i]:size()):copy(self.init_states[i]))
+            else
+                table.insert(input, self.init_states[i])
+            end
         end
         table.insert(input, subgoal)
     end
@@ -61,7 +66,11 @@ function Net:backward(x, gradOutput)
     if self.recurrent then
         local input = {x}
         for i = 1, #self.init_states do
-            table.insert(input, self.init_states[i])
+            if self.gpu and self.gpu >= 0 then
+                table.insert(input, torch.CudaTensor(self.init_states[i]:size()):copy(self.init_states[i]))
+            else
+                table.insert(input, self.init_states[i])
+            end
         end
         return self.net:backward(input, gradOutput)
     else
@@ -81,7 +90,7 @@ end
 
 function Net:cuda()
     self.net = self.net:cuda()
-    cudnn.convert(self.net, cudnn)
+    --cudnn.convert(self.net, cudnn)
     for i=1,#self.init_states do
         self.init_states[i] = self.init_states[i]:cuda()
     end

@@ -15,6 +15,8 @@ function MQN:build_model(args)
 
     local subgoal_x = nn.Identity()()
 
+    table.insert(input, subgoal_x)
+
     local T = args.hist_len
     local edim = args.n_hid_enc
     local cnn_features = self:build_cnn(args, x)
@@ -45,13 +47,14 @@ function MQN:build_model(args)
     out = nn.JoinTable(2)({out, subgoal_features})
     local q = nn.Linear(args.n_hid_enc + 11, args.n_actions)(out)
     nngraph.annotateNodes()
-    return nn.gModule({x, subgoal_x}, {q})
+    return nn.gModule(input, {q})
 end
 
 function MQN:build_subgoal(args, input)
     local subgoal_linear1 = nn.Linear(args.subgoal_dims*9, args.subgoal_nhid)(input)
     local subgoal_ReLu1 = nn.ReLU()(subgoal_linear1)
     local subgoal_linear2 = nn.Linear(args.subgoal_nhid, 11)(subgoal_ReLu1)
+    nngraph.annotateNodes()
     return nn.ReLU()(subgoal_linear2)
 end
 
@@ -74,12 +77,14 @@ function MQN:build_retrieval(args, key_blocks, val_blocks, cnn_features, conv_di
         MM_key = MM_key:cuda()
         MM_val = MM_val:cuda()
     end
+    nngraph.annotateNodes()
     return context, o
 end
 
 function MQN:build_context(args, x, xdim, edim, c0, h0)
     local context = nn.Narrow(2, args.hist_len, 1)(x)
     local context_flat = nn.View(-1):setNumInputDims(1)(context)
+    nngraph.annotateNodes()
     return nn.Linear(xdim, edim)(context_flat)
 end
 
@@ -98,5 +103,6 @@ function MQN:build_cnn(args, input)
         prev_input = conv_nl[i]
     end
     local conv_flat = nn.View(-1):setNumInputDims(3)(conv_nl[#args.n_units])
+    nngraph.annotateNodes()
     return nn.View(-1, args.hist_len, args.conv_dim):setNumInputDims(2)(conv_flat)
 end

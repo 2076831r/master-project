@@ -41,5 +41,6 @@ function RMQN:build_context(args, x, xdim, edim, c0, h0)
         h[t+1] = next_h
         self:share_module("h2h", h2h)
     end
+    nngraph.annotateNodes()
     return h[T+1], c[T+1]
 end
