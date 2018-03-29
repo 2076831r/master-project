@@ -90,7 +90,7 @@ end
 
 function Net:cuda()
     self.net = self.net:cuda()
-    --cudnn.convert(self.net, cudnn)
+    cudnn.convert(self.net, cudnn)
     for i=1,#self.init_states do
         self.init_states[i] = self.init_states[i]:cuda()
     end
