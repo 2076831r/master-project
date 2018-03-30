@@ -21,6 +21,9 @@ skt = ctx:socket{zmq.REQ,
 }
 
 function nql:__init(args)
+
+    self.model_type = args.model_type
+    
     self.state_dim  = args.state_dim -- State dimensionality.
     self.actions    = args.actions
     self.n_actions  = #self.actions
@@ -103,7 +106,7 @@ function nql:__init(args)
         if not err_msg then
             error("Could not find network file ")
         end
-        if self.best and exp.best_model then --best_model_real and model_rel if testing on non-subgoal network  
+        if self.best and exp.best_model then --best_model_real and model_rel if testing on non-subgoal network
             self.network = exp.best_model
         else
             self.network = exp.model
@@ -198,16 +201,16 @@ function nql:reset(state)
     end
     self.best_network = state.best_network
     self.best_network_real = state.best_network_real
-    
+
     self.network = state.model
     self.network_real = state.model_real
-    
+
     self.w, self.dw = self.network:getParameters()
     self.dw:zero()
 
     self.w_real, self.dw_real = self.network_real:getParameters()
     self.dw_real:zero()
-    
+
     self.numSteps = 0
     print("RESET STATE SUCCESFULLY")
 end
@@ -311,8 +314,8 @@ function nql:qLearnMinibatch(network, target_network, dw, w, g, g2, tmp, deltas,
             -- TODO
         end
 
-    else    
-        r = r[{{},2}] --external + intrinsic reward 
+    else
+        r = r[{{},2}] --external + intrinsic reward
     end
 
     local targets, delta, q2_max = self:getQUpdate({s=s, a=a, r=r, s2=s2,
@@ -410,7 +413,7 @@ function nql:get_objects(rawstate)
     end
     local object_list = process_pystr(msg)
     self.objects = object_list
-    return object_list --nn.SplitTable(1):forward(torch.rand(4, self.subgoal_dims))  
+    return object_list --nn.SplitTable(1):forward(torch.rand(4, self.subgoal_dims))
 end
 
 function nql:pick_subgoal(rawstate, oid)
@@ -419,7 +422,7 @@ function nql:pick_subgoal(rawstate, oid)
     while objects[indxs]:sum() == 0 do -- object absent
         indxs = torch.random(3, #objects) -- first is the agent
     end
-    
+
     -- concatenate subgoal with objects (input into network)
     local subg = objects[indxs]
     -- local ftrvec = torch.zeros(#objects*self.subgoal_dims)
@@ -478,7 +481,7 @@ function nql:intrinsic_reward(subgoal, objects)
         reward = 0
     end
 
-    
+
     if not self.use_distance then
         reward = 0 -- no intrinsic reward except for reaching the subgoal
     end
@@ -500,7 +503,7 @@ function nql:perceive(subgoal, reward, rawstate, terminal, testing, testing_ep)
 
     if terminal then
         self.deathPosition = objects[1][{{1,2}}] --just store the x and y coords of the agent
-    end 
+    end
 
     local goal_reached = self:isGoalReached(subgoal, objects)
     local intrinsic_reward = self:intrinsic_reward(subgoal, objects)
@@ -523,7 +526,7 @@ function nql:perceive(subgoal, reward, rawstate, terminal, testing, testing_ep)
 
     --print(reward, intrinsic_reward)
 
-    self.transitions:add_recent_state(state, terminal, subgoal)  
+    self.transitions:add_recent_state(state, terminal, subgoal)
 
     -- local currentFullState = self.transitions:get_recent()
 
@@ -564,7 +567,7 @@ function nql:perceive(subgoal, reward, rawstate, terminal, testing, testing_ep)
 
     -- actionIndex = 5 --left
 
-    self.transitions:add_recent_action(actionIndex) 
+    self.transitions:add_recent_action(actionIndex)
 
     --Do some Q-learning updates
     if self.numSteps > self.learn_start and not testing and
@@ -573,7 +576,7 @@ function nql:perceive(subgoal, reward, rawstate, terminal, testing, testing_ep)
             self:qLearnMinibatch(self.network, self.target_network, self.dw, self.w, self.g, self.g2, self.tmp, self.deltas, false)
 
             -- TODO: learning for Real network
-            -- self:qLearnMinibatch(self.network_real,  self.target_network_real, self.dw_real, self.w_real, self.g_real, self.g2_real, self.tmp_real, self.deltas_real, true) 
+            -- self:qLearnMinibatch(self.network_real,  self.target_network_real, self.dw_real, self.w_real, self.g_real, self.g2_real, self.tmp_real, self.deltas_real, true)
         end
     end
 
@@ -616,7 +619,7 @@ function nql:perceive(subgoal, reward, rawstate, terminal, testing, testing_ep)
     if false then -- deprecated
         if self.target_q and self.numSteps % self.target_q == 1 then
             self.target_network = self.network:clone()
-            self.target_network_real = self.network_real:clone() 
+            self.target_network_real = self.network_real:clone()
         end
     else --smooth average
         local alpha = 0.999
@@ -642,7 +645,7 @@ function nql:eGreedy(state, testing_ep, subgoal)
 	subgoal = subgoal:clone()
         subgoal[{{1,self.subgoal_dims}}] = 0
     end
-       
+
 
     -- Epsilon greedy
     if torch.uniform() < self.ep then
@@ -708,11 +711,11 @@ function nql:report(filename)
     -- print(" Real Network\n---------------------")
     -- print(get_weight_norms(self.network_real))
     -- print(get_grad_norms(self.network_real))
-    
+
 
     -- print stats on subgoal success rates
     for subg, val in pairs(self.subgoal_total) do
-        if self.subgoal_success[subg] then 
+        if self.subgoal_success[subg] then
             print("Subgoal ID (8-key, 6/7-bottom ladders):" , subg , ' : ',  self.subgoal_success[subg]/val, self.subgoal_success[subg] .. '/' .. val)
         else
             print("Subgoal ID (8-key, 6/7-bottom ladders):" , subg ,  ' : ')

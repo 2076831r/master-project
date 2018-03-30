@@ -17,6 +17,9 @@ skt = ctx:socket{zmq.REQ,
 }
 
 function nql:__init(args)
+
+    self.model_type = args.model_type
+    
     self.state_dim  = args.state_dim -- State dimensionality.
     self.actions    = args.actions
     self.n_actions  = #self.actions
