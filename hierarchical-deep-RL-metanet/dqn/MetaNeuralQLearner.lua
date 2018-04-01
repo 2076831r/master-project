@@ -19,7 +19,7 @@ skt = ctx:socket{zmq.REQ,
 function nql:__init(args)
 
     self.model_type = args.model_type
-    
+
     self.state_dim  = args.state_dim -- State dimensionality.
     self.actions    = args.actions
     self.n_actions  = #self.actions
@@ -842,6 +842,9 @@ function nql:greedy(network, n_actions,  state, subgoal, lastsubgoal)
     end
     subgoal = torch.reshape(subgoal, 1, self.subgoal_dims*9)
     if self.gpu >= 0 then
+        if not network.is_cuda then
+            network = network:cuda()
+        end
         state = state:cuda()
         subgoal = subgoal:cuda()
     end

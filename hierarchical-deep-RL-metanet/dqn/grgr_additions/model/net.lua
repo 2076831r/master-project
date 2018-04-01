@@ -10,6 +10,7 @@ function Net:__init(args)
     self.net = self:build_model(args)
     self.net.name = args.name
     self.gpu = args.gpu
+    self.is_cuda = false
 
     if args.gpu > 0 then
         self:cuda()
@@ -38,9 +39,13 @@ function Net:reset_init_states(batch_size)
 end
 
 function Net:forward(input)
+    x, subgoal = input[1], input[2]
     if self.recurrent then
-        x, subgoal = input[1], input[2]
-        input = {x}
+        if self.gpu and self.gpu >= 0 then
+            input = {torch.CudaTensor(x:size()):copy(x)}
+        else
+            input = {x}
+        end
         self:reset_init_states(x:size(1))
         for i = 1, #self.init_states do
             if self.gpu and self.gpu >= 0 then
@@ -51,6 +56,8 @@ function Net:forward(input)
         end
         table.insert(input, subgoal)
     end
+
+
     local success, output = pcall(function() return self.net:forward(input) end)
     if success then
         return output
@@ -94,6 +101,7 @@ function Net:cuda()
     for i=1,#self.init_states do
         self.init_states[i] = self.init_states[i]:cuda()
     end
+    self.is_cuda = true
     return self
 end
 

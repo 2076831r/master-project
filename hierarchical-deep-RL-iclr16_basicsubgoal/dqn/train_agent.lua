@@ -276,9 +276,7 @@ while step < opt.steps do
             agent.deltas_real, agent.tmp_real = nil, nil, nil, nil, nil, nil, nil, nil, nil
 
         local filename = opt.name
-        if opt.save_versions > 0 then
-            filename = filename .. "_" .. math.floor(step / opt.save_versions)
-        end
+        filename = filename .. "_" .. step
         filename = filename
         print()
         print(filename)

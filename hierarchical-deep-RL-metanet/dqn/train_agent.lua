@@ -118,10 +118,10 @@ local function add_gif(previm, scr, gif_filename)
     local jpg = image.compressJPG(scr:squeeze(), 100)
     local im = gd.createFromJpegStr(jpg:storage():string())
     im:trueColorToPalette(false, 256)
-    if previm then 
+    if previm then
         im:paletteCopy(previm)
     else
-        im:gifAnimBegin(gif_filename, true, 0) 
+        im:gifAnimBegin(gif_filename, true, 0)
     end
     im:gifAnimAdd(gif_filename, false, 0, 0, 7, gd.DISPOSAL_NONE)
     return im
@@ -130,7 +130,7 @@ end
 local prev_screen_im, prev_screen_subgoalim
 if opt.gif then
     prev_screen_im = add_gif(nil, screen, '../gifs/screen_seed=' .. opt.seed .. '.gif')
-    prev_screen_subgoalim = add_gif(nil, screen, '../gifs/subgoalscreen_seed=' .. opt.seed .. '.gif') 
+    prev_screen_subgoalim = add_gif(nil, screen, '../gifs/subgoalscreen_seed=' .. opt.seed .. '.gif')
 end
 
 print("Iteration ..", step)
@@ -141,7 +141,7 @@ local subgoal
 if META_AGENT then
     subgoal = agent:pick_subgoal(screen, 0, terminal, false)
 else
-    if opt.subgoal_index < opt.max_subgoal_index then 
+    if opt.subgoal_index < opt.max_subgoal_index then
         subgoal = agent:pick_subgoal(screen, opt.subgoal_index)
     else
         subgoal = agent:pick_subgoal(screen)
@@ -157,7 +157,7 @@ death_counter = 0 --to handle a bug in MZ atari
 episode_step_counter = 0
 metareward = 0
 SAVE_NET_EXIT = false
-cum_metareward = 0 
+cum_metareward = 0
 numepisodes = 0
 
 test_avg_R = test_avg_R or optim.Logger(paths.concat(opt.exp_folder , 'test_avgR.log'))
@@ -176,7 +176,7 @@ while step < opt.steps do
 
     if opt.gif then
         prev_screen_im = add_gif(prev_screen_im, screen, '../gifs/screen_seed=' .. opt.seed .. '.gif')
-        prev_screen_subgoalim = add_gif(prev_screen_subgoalim, subgoal_screen, '../gifs/subgoalscreen_seed=' .. opt.seed .. '.gif') 
+        prev_screen_subgoalim = add_gif(prev_screen_subgoalim, subgoal_screen, '../gifs/subgoalscreen_seed=' .. opt.seed .. '.gif')
     end
 
     -- for i=1,#agent.objects do
@@ -212,8 +212,8 @@ while step < opt.steps do
         end
         print("SUM OF PIXELS: ", screen:sum())
         new_game = false
-    end    
-    
+    end
+
     if metareward > 100 then --end of game after door opens
         terminal = true
         death_counter = 4
@@ -222,7 +222,7 @@ while step < opt.steps do
     -- game over? get next game!
     if not terminal and  episode_step_counter < opt.max_steps_episode then
 
-        -- if isGoalReached and opt.subgoal_index < opt.max_subgoal_index then 
+        -- if isGoalReached and opt.subgoal_index < opt.max_subgoal_index then
         --     screen,reward, terminal = game_env:newGame()  -- restart game if focussing on single subgoal
         --     subgoal = agent:pick_subgoal(screen, opt.subgoal_index)
         --     if opt.subgoal_screen then
@@ -237,7 +237,7 @@ while step < opt.steps do
         end
         reward = reward + tmp_reward
         episode_step_counter = episode_step_counter + 1
-        prev_Q = qfunc 
+        prev_Q = qfunc
     else
         death_counter = death_counter + 1
         -- print("TERMINAL ENCOUNTERED")
@@ -258,7 +258,7 @@ while step < opt.steps do
             -- print("NEW GAME STARTING")
             screen, reward, terminal = game_env:newGame()
         end
-        
+
         if death_counter == 5 then
             screen,reward, terminal = game_env:newGame()
             death_counter = 0
@@ -269,11 +269,11 @@ while step < opt.steps do
         isGoalReached = true --new game so reset goal
         episode_step_counter = 0
     end
-  
+
     if isGoalReached then
 
         if META_AGENT then
-            if metareward > 0 then 
+            if metareward > 0 then
                 print("METAREWARD: ", metareward, "| subgoal:", subgoal[-1])
                 -- io.read()
             end
@@ -376,7 +376,7 @@ while step < opt.steps do
     --         --if metareward > 0 then
     --         --end
 
-    
+
     --         cum_reward_tot = cum_reward_tot + reward_tot
     --         cum_reward_ext = cum_reward_ext + reward_ext
 
@@ -385,7 +385,7 @@ while step < opt.steps do
     --         if not terminal then
     --             screen, reward, terminal = game_env:step(game_actions[1]) -- noop
     --         end
-           
+
     --         -- display screen (REDUNDANT?  - already being displayed above)
     --         -- if opt.display_game and not opt.subgoal_screen then
     --         --     screen_cropped = screen:clone()
@@ -455,13 +455,13 @@ while step < opt.steps do
     --     test_avg_R:add{['% Average Extrinsic Reward'] = cum_reward_ext}
     --     test_avg_R2:add{['% Average Total Reward'] = cum_reward_tot}
     --     test_avg_Q:add{['% Average Q'] = agent.v_avg}
-     
+
 
     --     test_avg_R:style{['% Average Extrinsic Reward'] = '-'}; test_avg_R:plot()
     --     test_avg_R2:style{['% Average Total Reward'] = '-'}; test_avg_R2:plot()
 
     --     test_avg_Q:style{['% Average Q'] = '-'}; test_avg_Q:plot()
-      
+
     --     reward_history[ind] = total_reward
     --     reward_counts[ind] = nrewards
     --     episode_counts[ind] = nepisodes
@@ -478,7 +478,7 @@ while step < opt.steps do
     --         'testing rate: %dfps,  num. ep.: %d,  num. rewards: %d',
     --         step, step*opt.actrep, cum_reward_ext, cum_reward_tot, agent.ep, agent.lr, time_dif,
     --         training_rate, eval_time, opt.actrep*opt.eval_steps/eval_time,
-    --         nepisodes, nrewards))        
+    --         nepisodes, nrewards))
     -- end
 
 
@@ -489,18 +489,16 @@ while step < opt.steps do
             agent.valid_term = nil, nil, nil, nil, nil, nil, nil
         local w_meta, dw_meta, g_meta, g2_meta, delta, delta2, deltas, deltas_meta, tmp_meta = agent.w_meta, agent.dw_meta,
             agent.g_meta, agent.g2_meta, agent.delta, agent.delta2, agent.deltas, agent.deltas_meta, agent.tmp_meta
-        agent.w_meta, agent.dw_meta, agent.g_meta, agent.g2_meta, agent.delta, agent.delta2, agent.deltas, 
+        agent.w_meta, agent.dw_meta, agent.g_meta, agent.g2_meta, agent.delta, agent.delta2, agent.deltas,
             agent.deltas_meta, agent.tmp_meta = nil, nil, nil, nil, nil, nil, nil, nil, nil
 
         local filename = opt.name
-        if opt.save_versions > 0 then
-            filename = filename .. "_" .. math.floor(step / opt.save_versions)
-        end
+        filename = filename .. "_" .. step
         filename = filename
         torch.save(filename .. ".t7", {agent = agent,
                                 model = agent.network,
                                 best_model = agent.best_network,
-                                model_meta = agent.network_meta, 
+                                model_meta = agent.network_meta,
                                 best_model_meta = agent.best_network_meta,
                                 reward_history = reward_history,
                                 reward_counts = reward_counts,
