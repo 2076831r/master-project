@@ -4,6 +4,8 @@ require 'grgr_additions.LinearNB'
 require 'grgr_additions.model.dqn'
 require 'grgr_additions.model.drqn'
 require 'grgr_additions.model.mqn'
+require 'grgr_additions.model.mqnbefore'
+require 'grgr_additions.model.mqnafter'
 require 'grgr_additions.model.rmqn'
 require 'grgr_additions.model.frmqn'
 nngraph.setDebug(true)
@@ -24,7 +26,7 @@ function g_create_network(args)
     args.lstm_dim           = args.edim or 256
     args.gpu                = args.gpu or -1
     args.conv_dim           = args.n_units[#args.n_units] * 8 * 8
-    args.hist_dim           = args.conv_dim + 1
+    args.hist_dim           = args.conv_dim + 5
     args.Linear             = nn.LinearNB
 
     if args.name == "dqn" then
@@ -33,6 +35,10 @@ function g_create_network(args)
         return DRQN.new(args)
     elseif args.name == "mqn" then
         return MQN.new(args)
+    elseif args.name == "mqnbefore" then
+        return MQNBefore.new(args)
+    elseif args.name == "mqnafter" then
+        return MQNAfter.new(args)
     elseif args.name == "rmqn" then
         return RMQN.new(args)
     elseif args.name == "frmqn" then
