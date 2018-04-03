@@ -95,6 +95,7 @@ function nql:__init(args)
     self.smooth_target_q  = args.smooth_target_q or true
     self.target_q_eps     = args.target_q_eps or 1e-3
     self.clip_grad        = args.clip_grad or 20
+    self.saved_targets    = {}
 
     self.transition_params = args.transition_params or {}
 
@@ -333,6 +334,8 @@ function nql:qLearnMinibatch(network, target_network, dw, w, g, g2, tmp, deltas,
     -- get new gradient
     -- print(subgoals)
     network:backward({s, subgoals}, targets)
+    table.insert(self.saved_targets, targets)
+
 
     -- add weight cost to gradient
     dw:add(-self.wc, w)
@@ -729,6 +732,9 @@ function nql:report(filename)
     end
 
     torch.save(filename , {self.subgoal_success, self.subgoal_total})
+    filename = filename:sub(1, -4)
+    torch.save(filename.."_targets.t7", {self.saved_targets})
+    self.saved_targets = {}
     self.subgoal_success = {}
     self.subgoal_total = {}
 end
