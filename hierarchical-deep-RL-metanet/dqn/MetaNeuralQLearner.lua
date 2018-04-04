@@ -326,6 +326,12 @@ function nql:getQUpdate(args, external_r)
     else
         target_q_net = args.network
     end
+    if self.gpu and self.gpu >= 0 then
+        target_q_net = target_q_net:cuda()
+        s2 = s2:cuda()
+        subgoals2 = subgoals2:cuda()
+    end
+
 
     -- Compute max_a Q(s_2, a).
     -- print(s2:size(), subgoals2:size())
@@ -378,7 +384,7 @@ end
 function nql:qLearnMinibatch(network, target_network, tran_table, dw, w, g, g2, tmp, deltas, external_r, nactions, metaFlag)
     -- Perform a minibatch Q-learning update:
     -- w += alpha * (r + gamma max Q(s2,a2) - Q(s,a)) * dQ(s,a)/dw
-    print(tran_table:size())
+    print(tran_table.maxSize)
     print(self.minibatch_size)
     assert(tran_table:size() > self.minibatch_size)
 
