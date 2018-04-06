@@ -260,6 +260,7 @@ function nql:getQUpdate(args, external_r)
     end
 
     -- Compute max_a Q(s_2, a).
+    target_q_net:evaluate()
     q2_max = target_q_net:forward({s2, subgoals2:zero()}):float():max(2)
 
     -- Compute q2 = (1-terminal) * gamma * max_a Q(s2, a)
@@ -283,6 +284,7 @@ function nql:getQUpdate(args, external_r)
     delta:add(q2)
 
     -- q = Q(s,a)
+    args.network:training()
     local q_all = args.network:forward({s, subgoals:zero()}):float()
     q = torch.FloatTensor(q_all:size(1))
     for i=1,q_all:size(1) do
@@ -676,6 +678,8 @@ function nql:greedy(state, subgoal)
         state = state:cuda()
         subgoal = subgoal:cuda()
     end
+
+    self.network:evaluate()
     local q = self.network:forward({state, subgoal:zero()}):float():squeeze()
     local maxq = q[1]
     local besta = {1}
