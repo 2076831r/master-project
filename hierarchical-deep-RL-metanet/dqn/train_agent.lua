@@ -39,7 +39,7 @@ cmd:option('-saveNetworkParams', true,
 cmd:option('-prog_freq', 5*10^3, 'frequency of progress output')
 cmd:option('-save_freq', 5*10^4, 'the model is saved every save_freq steps')
 cmd:option('-eval_freq', 10^4, 'frequency of greedy evaluation')
-cmd:option('-save_versions', 0, '')
+cmd:option('-save_versions', 100000, '')
 
 cmd:option('-steps', 10^5, 'number of training steps to perform')
 cmd:option('-eval_steps', 10^5, 'number of evaluation steps')
@@ -493,7 +493,9 @@ while step < opt.steps do
             agent.deltas_meta, agent.tmp_meta = nil, nil, nil, nil, nil, nil, nil, nil, nil
 
         local filename = opt.name
-        filename = filename .. "_" .. step
+        if opt.save_versions > 0 then
+            filename = filename .. "_" .. math.floor(step / opt.save_versions)
+        end
         filename = filename
         torch.save(filename .. ".t7", {agent = agent,
                                 model = agent.network,

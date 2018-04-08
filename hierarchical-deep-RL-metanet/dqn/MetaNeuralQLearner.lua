@@ -900,8 +900,8 @@ end
 
 function nql:report(filename)
     print("Subgoal Network\n---------------------")
-    print(get_weight_norms(self.network))
-    print(get_grad_norms(self.network))
+    print(get_weight_norms(self.network.net))
+    print(get_grad_norms(self.network.net))
     -- print(" Real Network\n---------------------")
     -- print(get_weight_norms(self.network_real))
     -- print(get_grad_norms(self.network_real))
@@ -916,7 +916,7 @@ function nql:report(filename)
         end
     end
 
-    torch.save(filename , {self.subgoal_success, self.subgoal_total, self.global_subgoal_seq})
+    torch.save(filename , {{self.subgoal_success, self.subgoal_total, self.global_subgoal_seq}, get_weight_norms(self.network.net), get_grad_norms(self.network.net)})
     self.subgoal_success = {}
     self.subgoal_total = {}
     self.global_subgoal_seq = {}
