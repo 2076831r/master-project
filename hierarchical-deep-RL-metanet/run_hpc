@@ -1,0 +1,23 @@
+#!/bin/sh 
+#PBS -q gpu
+#PBS -l nodes=gpu01.hpc.gla.ac.uk:ppn=2,walltime=192:00:00 
+cd ~/
+export CUDA_VISIBLE_DEVICES=`cat /tmp/$PBS_JOBID/gpu`
+export http_proxy=wwwcache.gla.ac.uk:8080
+export https_proxy=$http_proxy
+export PATH=/export/home/2076831r/anaconda2/bin:$PATH
+
+ . /export/home/2076831r/torch/install/bin/torch-activate
+export LD_LIBRARY_PATH=/export/home/2076831r/lib:$LD_LIBRARY_PATH
+export PATH=/usr/local/cuda-8.0/bin:$PATH
+git config --global url."https://".insteadOf git://
+
+export CUDA_HOME=/usr/local/cuda-8.0/
+cd /export/home/2076831r/master-project/hierarchical-deep-RL-metanet
+cd dqn 
+python pyserver.py 5550 >pyserver5550.log 2>&1 &
+python pyserver.py 5551 >pyserver5551.log 2>&1 &
+cd .. 
+./run_gpu montezuma_revenge mqnbefore5550 5550 >mqnafter5550.log 2>&1 &
+./run_gpu montezuma_revenge mqnbefore5551 5551 >mqnafter5551.log 2>&1 
+

@@ -386,8 +386,6 @@ end
 function nql:qLearnMinibatch(network, target_network, tran_table, dw, w, g, g2, tmp, deltas, external_r, nactions, metaFlag)
     -- Perform a minibatch Q-learning update:
     -- w += alpha * (r + gamma max Q(s2,a2) - Q(s,a)) * dQ(s,a)/dw
-    print(tran_table.maxSize)
-    print(self.minibatch_size)
     assert(tran_table:size() > self.minibatch_size)
 
     local s, a, r, s2, term, subgoals, subgoals2 = tran_table:sample(self.minibatch_size)
@@ -512,6 +510,9 @@ function nql:get_objects(rawstate)
 end
 
 function nql:pick_subgoal(rawstate, metareward, terminal, testing, testing_ep)
+    if not self.network_meta.is_cuda then 
+        self.network_meta = self.network_meta:cuda()
+    end
     local objects = self:get_objects(rawstate)
 
     local subg = objects[1] --does not matter
@@ -850,9 +851,6 @@ function nql:greedy(network, n_actions,  state, subgoal, lastsubgoal)
     end
     subgoal = torch.reshape(subgoal, 1, self.subgoal_dims*9)
     if self.gpu >= 0 then
-        if not network.is_cuda then
-            network = network:cuda()
-        end
         state = state:cuda()
         subgoal = subgoal:cuda()
     end
